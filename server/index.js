@@ -13,6 +13,9 @@ const rateLimit = require("express-rate-limit");
 
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -24,10 +27,15 @@ app.use(limiter);
 connectDB();
 
 // Middleware
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://smart-interview-platform-gold.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -45,6 +53,6 @@ app.get("/", (req, res) => {
 
 console.log("User Model Loaded:", User.modelName);
 
-app.listen(config.port, () => {
-  console.log(`Server running on port ${config.port}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
