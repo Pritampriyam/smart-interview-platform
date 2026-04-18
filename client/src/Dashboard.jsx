@@ -4,7 +4,6 @@ import { FileText, Upload, BarChart3, LogOut } from "lucide-react";
 import QuestionsPanel from "./QuestionsPanel";
 import AnswersPanel from "./AnswersPanel";
 import ResumePanel from "./ResumePanel";
-import HistoryPanel from "./HistoryPanel";
 
 
 
@@ -39,16 +38,34 @@ export default function Dashboard() {
     loadHistory();
   }, []);
 
-  const saveHistory = async (type, content) => {
-    try {
-      await API.post(
-        "/history",
-        { type, content },
-        authHeader
-      );
-      loadHistory();
-    } catch { }
-  };
+const saveHistory = async (type, content) => {
+  try {
+    const sessionId =
+      localStorage.getItem("sessionId") || Date.now().toString();
+
+    localStorage.setItem("sessionId", sessionId);
+
+    const companyName =
+      localStorage.getItem("companyName") || "General";
+
+    const jobTitle =
+      localStorage.getItem("jobTitle") || "Interview Prep";
+
+    await API.post(
+      "/history",
+      {
+        sessionId,
+        companyName,
+        jobTitle,
+        type,
+        content,
+      },
+      authHeader
+    );
+
+    loadHistory();
+  } catch {}
+};
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -82,20 +99,41 @@ export default function Dashboard() {
       setMsg("Analyzing Skill Gap...");
 
       const prompt = `
-You are a hiring expert.
+You are an expert hiring manager and career coach.
 
-Compare this Resume:
+Analyze the candidate's Resume against the Job Description.
+
+Resume:
 ${text}
 
-With this Job Description:
+Job Description:
 ${jobDesc}
 
-Return:
-1. Missing Skills
-2. Important Matching Skills
-3. Short Improvement Suggestions
+Return in this exact structure:
 
-Keep it concise in bullet points.
+SKILL GAP ANALYSIS
+
+1. Missing Skills
+- important missing tools, frameworks, concepts
+
+2. Matching Strengths
+- skills already matching JD
+
+3. Priority Learning Plan
+- what to learn first in 7 days
+- what to learn next in 30 days
+
+4. Interview Risk Areas
+- topics interviewer may challenge
+
+5. Final Hiring Readiness Score
+- score out of 100 with 1 line reason
+
+Rules:
+- concise
+- actionable
+- bullet points
+- no markdown code block
 `;
 
       const res = await API.post("/ai/generate", { prompt });
@@ -105,8 +143,10 @@ Keep it concise in bullet points.
         .filter((line) => line.trim() !== "");
 
       setMissingSkills(lines);
+      localStorage.setItem("skillGap", JSON.stringify(lines));
       saveHistory("AI Skill Gap", res.data.text);
       setMsg("AI Skill Gap Generated");
+      window.location.href = "/skill-gap";
     } catch {
       setMsg("Skill Gap Analysis Failed");
     }
@@ -141,8 +181,10 @@ Return clean plain text list.
         .filter((line) => line.trim() !== "");
 
       setQuestions(lines);
+      localStorage.setItem("questions", JSON.stringify(lines));
       saveHistory("AI Questions", res.data.text);
       setMsg("AI Questions Generated");
+      window.location.href = "/questions";
     } catch {
       setMsg("AI Question Generation Failed");
     }
@@ -181,45 +223,96 @@ Answer: ...
       });
 
       setAnswers(formatted);
+      localStorage.setItem("answers", JSON.stringify(formatted));
       saveHistory("AI Answers", res.data.text);
       setMsg("AI Answers Generated");
+      window.location.href = "/answers";
     } catch {
       setMsg("AI Answer Generation Failed");
     }
   };
 
   const generateResume = async () => {
-  try {
-    setMsg("Generating AI ATS Resume...");
+    try {
+      setMsg("Generating Premium ATS Resume...");
 
-    const prompt = `
-You are an expert ATS resume writer.
+      const prompt = `
+You are a world-class resume writer.
 
-Using this Resume:
+Use the candidate resume data and job description below.
+
+Resume Source:
 ${text}
 
-Using this Job Description:
+Job Description:
 ${jobDesc}
 
-Create an improved ATS-friendly resume with:
-1. Professional Summary
-2. Skills
-3. Experience / Projects
-4. Education
-5. Keywords aligned to job description
+Generate a FINAL resume in the exact style of a one-page LaTeX engineering resume.
 
-Return clean plain text.
+STRICT RULES:
+- Must fit in ONE page
+- Compact wording
+- High information density
+- Professional tone
+- ATS optimized
+- No markdown
+- No code fences
+- No explanations
+- No empty lines between every item
+- Crisp bullet points
+- Use strong action verbs
+- Keep each bullet short
+
+EXACT SECTION ORDER:
+NAME
+CONTACT LINE (phone | email | Portfolio | GitHub | LinkedIn | CodeChef | LeetCode)
+
+Career Objective
+(2 lines max)
+
+Technical Skills
+- Programming Languages
+- Frontend Technologies
+- Backend Technologies
+- Databases
+- Developer Tools
+- Core Concepts
+
+Projects
+Project Name | GitHub | Live
+- Tech Stack:
+- 4 concise impact bullets
+
+Second Project | GitHub | Live
+- Tech Stack:
+- 4 concise bullets
+
+Education
+College + Degree + CGPA + Year
+School
+School
+
+Certifications & Achievements
+- bullets
+
+Soft Skills
+- bullets
+
+IMPORTANT:
+Return polished final resume text only.
 `;
 
-    const res = await API.post("/ai/generate", { prompt });
+      const res = await API.post("/ai/generate", { prompt });
 
-    setResume(res.data.text);
-    saveHistory("AI ATS Resume", res.data.text);
-    setMsg("AI ATS Resume Generated");
-  } catch {
-    setMsg("ATS Resume Generation Failed");
-  }
-};
+      setResume(res.data.text);
+      localStorage.setItem("resume", res.data.text);
+      saveHistory("AI ATS Resume", res.data.text);
+      setMsg("Premium ATS Resume Generated");
+      window.location.href = "/resume";
+    } catch {
+      setMsg("ATS Resume Generation Failed");
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
@@ -300,6 +393,13 @@ Return clean plain text.
             >
               Generate ATS Resume
             </button>
+
+            <button
+              onClick={() => (window.location.href = "/history")}
+              className="w-full bg-slate-800 text-white px-4 py-2 rounded-xl"
+            >
+              View History
+            </button>
           </div>
 
           {missingSkills.length > 0 && (
@@ -324,7 +424,7 @@ Return clean plain text.
       <QuestionsPanel questions={questions} />
       <AnswersPanel answers={answers} />
       <ResumePanel resume={resume} />
-      <HistoryPanel items={history} />
+      
 
       {text && (
         <div className="mt-6 bg-white shadow rounded-2xl p-4">

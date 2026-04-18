@@ -22,6 +22,9 @@ router.post("/", auth, async (req, res) => {
   try {
     const item = await History.create({
       userId: req.user.id,
+      sessionId: req.body.sessionId,
+      companyName: req.body.companyName,
+      jobTitle: req.body.jobTitle,
       type: req.body.type,
       content: req.body.content,
     });

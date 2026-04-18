@@ -6,6 +6,13 @@ import PricingPage from "./PricingPage";
 import Auth from "./Auth";
 import Dashboard from "./Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
+import QuestionsPage from "./QuestionsPage";
+import SkillGapPage from "./SkillGapPage";
+import AnswersPage from "./AnswersPage";
+import ResumePage from "./ResumePage";
+import HistoryPage from "./HistoryPage";
+
+
 
 export default function App() {
   return (
@@ -17,6 +24,11 @@ export default function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/questions" element={<QuestionsPage />} />
+          <Route path="/skill-gap" element={<SkillGapPage />} />
+          <Route path="/answers" element={<AnswersPage />} />
+          <Route path="/resume" element={<ResumePage />} />
+          <Route path="/history" element={<HistoryPage />} />
         </Route>
         <Route
           path="/dashboard"

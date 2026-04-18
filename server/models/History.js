@@ -7,10 +7,27 @@ const historySchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    sessionId: {
+      type: String,
+      required: true,
+    },
+
+    companyName: {
+      type: String,
+      default: "General",
+    },
+
+    jobTitle: {
+      type: String,
+      default: "Interview Prep",
+    },
+
     type: {
       type: String,
       required: true,
     },
+
     content: {
       type: String,
       required: true,
