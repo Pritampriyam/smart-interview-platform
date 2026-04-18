@@ -6,6 +6,9 @@ import AnswersPanel from "./AnswersPanel";
 import ResumePanel from "./ResumePanel";
 import HistoryPanel from "./HistoryPanel";
 
+
+
+
 export default function Dashboard() {
   const [msg, setMsg] = useState("");
   const [text, setText] = useState("");
@@ -13,10 +16,13 @@ export default function Dashboard() {
   const [missingSkills, setMissingSkills] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
-  const [resume, setResume] = useState("");
+  const [resume, setResume] = useState("")
   const [history, setHistory] = useState([]);
 
   const token = localStorage.getItem("token");
+
+
+
 
   const authHeader = {
     headers: { Authorization: `Bearer ${token}` },
