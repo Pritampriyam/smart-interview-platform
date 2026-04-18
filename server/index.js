@@ -9,6 +9,8 @@ const protectedRoutes = require("./routes/protected");
 const uploadRoutes = require("./routes/uploadRoutes");
 const historyRoutes = require("./routes/historyRoutes");
 const rateLimit = require("express-rate-limit");
+const aiRoutes = require("./routes/aiRoutes");
+
 
 
 
@@ -44,6 +46,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api", protectedRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/history", historyRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 

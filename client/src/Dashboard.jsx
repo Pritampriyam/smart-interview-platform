@@ -32,7 +32,7 @@ export default function Dashboard() {
     try {
       const res = await API.get("/history", authHeader);
       setHistory(res.data);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function Dashboard() {
         authHeader
       );
       loadHistory();
-    } catch {}
+    } catch { }
   };
 
   const logout = () => {
@@ -77,75 +77,149 @@ export default function Dashboard() {
     setMsg("Job Description saved");
   };
 
-  const analyzeSkills = () => {
-    const skills = [
-      "react","node","mongodb","docker","aws","java","python","php",
-      "javascript","typescript","fastapi","svelte","mysql","postgresql"
-    ];
+  const analyzeSkills = async () => {
+    try {
+      setMsg("Analyzing Skill Gap...");
 
-    const missing = skills.filter(
-      (skill) =>
-        jobDesc.toLowerCase().includes(skill) &&
-        !text.toLowerCase().includes(skill)
-    );
+      const prompt = `
+You are a hiring expert.
 
-    setMissingSkills(missing);
-    saveHistory("Skill Gap", missing.join(", "));
-    setMsg("Skill Gap Analysis Completed");
+Compare this Resume:
+${text}
+
+With this Job Description:
+${jobDesc}
+
+Return:
+1. Missing Skills
+2. Important Matching Skills
+3. Short Improvement Suggestions
+
+Keep it concise in bullet points.
+`;
+
+      const res = await API.post("/ai/generate", { prompt });
+
+      const lines = res.data.text
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+
+      setMissingSkills(lines);
+      saveHistory("AI Skill Gap", res.data.text);
+      setMsg("AI Skill Gap Generated");
+    } catch {
+      setMsg("Skill Gap Analysis Failed");
+    }
   };
 
-  const generateQuestions = () => {
-    const list = [
-      "Tell me about yourself.",
-      "Why should we hire you?",
-      "Explain React hooks.",
-      "How do you secure REST APIs?",
-      "How would you debug a slow application?"
-    ];
+  const generateQuestions = async () => {
+    try {
+      setMsg("Generating AI Questions...");
 
-    setQuestions(list);
-    saveHistory("Questions", list.join("\n"));
-    setMsg("Interview Questions Generated");
+      const prompt = `
+You are an interview coach.
+
+Based on this Job Description:
+${jobDesc}
+
+And this Resume:
+${text}
+
+Generate 25 interview questions in categories:
+1. HR
+2. Technical
+3. Behavioral
+4. Scenario
+
+Return clean plain text list.
+`;
+
+      const res = await API.post("/ai/generate", { prompt });
+
+      const lines = res.data.text
+        .split("\n")
+        .filter((line) => line.trim() !== "");
+
+      setQuestions(lines);
+      saveHistory("AI Questions", res.data.text);
+      setMsg("AI Questions Generated");
+    } catch {
+      setMsg("AI Question Generation Failed");
+    }
   };
 
-  const generateAnswers = () => {
-    const data = [
-      {
-        question: "Tell me about yourself.",
-        answer: "Summarize your background, skills, and goals."
-      },
-      {
-        question: "How do you secure REST APIs?",
-        answer: "Use auth, validation, HTTPS, roles, rate limits."
-      }
-    ];
+  const generateAnswers = async () => {
+    try {
+      setMsg("Generating AI Answers...");
 
-    setAnswers(data);
-    saveHistory("Answers", data.map(a => a.question).join("\n"));
-    setMsg("Suggested Answers Generated");
+      const prompt = `
+You are an expert interview coach.
+
+Using this Job Description:
+${jobDesc}
+
+And this Resume:
+${text}
+
+Generate 10 common interview questions with strong sample answers.
+
+Return format:
+Question: ...
+Answer: ...
+`;
+
+      const res = await API.post("/ai/generate", { prompt });
+
+      const blocks = res.data.text.split("Question:").filter(Boolean);
+
+      const formatted = blocks.map((item) => {
+        const parts = item.split("Answer:");
+        return {
+          question: parts[0]?.trim() || "",
+          answer: parts[1]?.trim() || "",
+        };
+      });
+
+      setAnswers(formatted);
+      saveHistory("AI Answers", res.data.text);
+      setMsg("AI Answers Generated");
+    } catch {
+      setMsg("AI Answer Generation Failed");
+    }
   };
 
-  const generateResume = () => {
-    const content = `
-PRITAM KUMAR
+  const generateResume = async () => {
+  try {
+    setMsg("Generating AI ATS Resume...");
 
-Professional Summary
-Motivated Full Stack Developer with strong problem-solving skills.
+    const prompt = `
+You are an expert ATS resume writer.
 
-Skills
-React, Node.js, MongoDB, JavaScript
+Using this Resume:
+${text}
 
-Projects
-InterviewPlatform
+Using this Job Description:
+${jobDesc}
 
-Education
-B.Tech
-    `;
+Create an improved ATS-friendly resume with:
+1. Professional Summary
+2. Skills
+3. Experience / Projects
+4. Education
+5. Keywords aligned to job description
 
-    setResume(content);
-    saveHistory("ATS Resume", content);
-    setMsg("ATS Resume Generated");
-  };
+Return clean plain text.
+`;
+
+    const res = await API.post("/ai/generate", { prompt });
+
+    setResume(res.data.text);
+    saveHistory("AI ATS Resume", res.data.text);
+    setMsg("AI ATS Resume Generated");
+  } catch {
+    setMsg("ATS Resume Generation Failed");
+  }
+};
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
