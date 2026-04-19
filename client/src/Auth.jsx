@@ -25,9 +25,17 @@ export default function Auth() {
             const url = isLogin ? "/auth/login" : "/auth/signup";
             const payload = isLogin ? { email: form.email, password: form.password } : form;
             const res = await API.post(url, payload);
+
+            console.log("AUTH RESPONSE:", res.data);
+
+            if (!res.data.token) {
+                setMsg("Token missing in response");
+                return;
+            }
+
             localStorage.setItem("token", res.data.token);
-            window.location.href = "/dashboard";
             setMsg(res.data.message || "Success");
+            window.location.href = "/dashboard";
             setForm({ name: "", email: "", password: "" });
         } catch (err) {
             setMsg(err.response?.data?.message || "Request failed");

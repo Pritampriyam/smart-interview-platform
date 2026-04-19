@@ -38,34 +38,34 @@ export default function Dashboard() {
     loadHistory();
   }, []);
 
-const saveHistory = async (type, content) => {
-  try {
-    const sessionId =
-      localStorage.getItem("sessionId") || Date.now().toString();
+  const saveHistory = async (type, content) => {
+    try {
+      const sessionId =
+        localStorage.getItem("sessionId") || Date.now().toString();
 
-    localStorage.setItem("sessionId", sessionId);
+      localStorage.setItem("sessionId", sessionId);
 
-    const companyName =
-      localStorage.getItem("companyName") || "General";
+      const companyName =
+        localStorage.getItem("companyName") || "General";
 
-    const jobTitle =
-      localStorage.getItem("jobTitle") || "Interview Prep";
+      const jobTitle =
+        localStorage.getItem("jobTitle") || "Interview Prep";
 
-    await API.post(
-      "/history",
-      {
-        sessionId,
-        companyName,
-        jobTitle,
-        type,
-        content,
-      },
-      authHeader
-    );
+      await API.post(
+        "/history",
+        {
+          sessionId,
+          companyName,
+          jobTitle,
+          type,
+          content,
+        },
+        authHeader
+      );
 
-    loadHistory();
-  } catch {}
-};
+      loadHistory();
+    } catch { }
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -150,6 +150,28 @@ Rules:
     } catch {
       setMsg("Skill Gap Analysis Failed");
     }
+  };
+
+  const startNewSession = () => {
+    const id = Date.now().toString();
+
+    localStorage.setItem("sessionId", id);
+
+    const company =
+      prompt("Enter Company Name") || "General";
+
+    const role =
+      prompt("Enter Job Title") || "Interview Prep";
+
+    localStorage.setItem("companyName", company);
+    localStorage.setItem("jobTitle", role);
+
+    setQuestions([]);
+    setAnswers([]);
+    setMissingSkills([]);
+    setResume("");
+
+    setMsg("New Interview Session Started 🚀");
   };
 
   const generateQuestions = async () => {
@@ -366,6 +388,14 @@ Return polished final resume text only.
           <h2 className="text-xl font-semibold">Analysis Results</h2>
 
           <div className="space-y-3 mt-3">
+
+            <button
+              onClick={startNewSession}
+              className="w-full bg-black text-white px-4 py-3 rounded-xl mb-3"
+            >
+              + New Interview Session
+            </button>
+            
             <button
               onClick={analyzeSkills}
               className="w-full bg-green-600 text-white px-4 py-2 rounded-xl"
@@ -424,7 +454,7 @@ Return polished final resume text only.
       <QuestionsPanel questions={questions} />
       <AnswersPanel answers={answers} />
       <ResumePanel resume={resume} />
-      
+
 
       {text && (
         <div className="mt-6 bg-white shadow rounded-2xl p-4">

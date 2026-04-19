@@ -41,7 +41,23 @@ router.get("/", auth, async (req, res) => {
       createdAt: -1,
     });
 
-    res.json(items);
+    const grouped = {};
+
+    items.forEach((item) => {
+      if (!grouped[item.sessionId]) {
+        grouped[item.sessionId] = {
+          sessionId: item.sessionId,
+          companyName: item.companyName,
+          jobTitle: item.jobTitle,
+          createdAt: item.createdAt,
+          items: [],
+        };
+      }
+
+      grouped[item.sessionId].items.push(item);
+    });
+
+    res.json(Object.values(grouped));
   } catch {
     res.status(500).json({ message: "Fetch failed" });
   }
